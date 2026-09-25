@@ -31,20 +31,70 @@ const MAX_NAME_LENGTH = 64;
  *   - Any extra field in raw, for example isAdmin, must NOT appear in the returned object.
  */
 function normalizeService(raw) {
-  // TODO Mission 1
-}
+  if (raw === null || typeof raw !== "object" || Array.isArray(raw)) {
+    return null;
+  }
 
-/**
- * Parses the full JSON text returned by the server.
- *
- * On success returns:
- *   { services: [ ...valid normalized entries ], rejected: <number of invalid entries>, error: null }
- *
- * If the text is not valid JSON, or the parsed value has no "services" array, returns:
- *   { services: [], rejected: 0, error: "invalid report" }
- */
+  if (typeof raw.name !== "string") {
+    return null;
+  }
+
+  let name = raw.name.trim();
+
+  if (name === "" || name.length > MAX_NAME_LENGTH) {
+    return null;
+  }
+
+  if (typeof raw.status !== "string" || !ALLOWED_STATUS.includes(raw.status)) {
+    return null;
+  }
+
+  if (typeof raw.online !== "boolean") {
+    return null;
+  }
+
+  if (typeof raw.latencyMs !== "number" || !Number.isFinite(raw.latencyMs) || raw.latencyMs < 0) {
+    return null;
+  }
+
+  return {
+    name: name,
+    status: raw.status,
+    online: raw.online,
+    latencyMs: raw.latencyMs
+  };
+}
 function parseStatusReport(jsonText) {
-  // TODO Mission 1
+  let data;
+
+  try {
+    data = JSON.parse(jsonText);
+  } catch {
+    return { services: [], rejected: 0, error: "invalid report" };
+  }
+
+  if (data === null || !Array.isArray(data.services)) {
+    return { services: [], rejected: 0, error: "invalid report" };
+  }
+
+  let services = [];
+  let rejected = 0;
+
+  for (let item of data.services) {
+    let result = normalizeService(item);
+
+    if (result === null) {
+      rejected++;
+    } else {
+      services.push(result);
+    }
+  }
+
+  return {
+    services: services,
+    rejected: rejected,
+    error: null
+  };
 }
 
 // Lets Node's require() see these functions. The browser simply ignores this block.
