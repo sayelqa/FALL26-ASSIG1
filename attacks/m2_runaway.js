@@ -15,11 +15,49 @@
   const zone = document.getElementById("danger-zone");
   const original = document.getElementById("purge-btn");
 
-  // TODO R1: remove the portal's legitimate click listener.
-  // TODO R2: stop keyboard users from reaching the button.
-  // TODO R3: make the button jump inside zone on every approach, no overlap.
-  // TODO R4: create a NEW element that shows the dodge counter.
-  // TODO R5: your creative twist.
+  const btn = original.cloneNode(true);
+original.replaceWith(btn);
 
+btn.tabIndex = -1;
+
+zone.style.position = "relative";
+btn.style.position = "absolute";
+
+let oldX = -1000;
+let oldY = -1000;
+
+let dodges = 0;
+const counter = document.createElement("p");
+counter.textContent = "Dodges: 0";
+zone.insertAdjacentElement("afterend", counter);
+
+btn.addEventListener("pointerenter", () => {
+  let maxX = zone.clientWidth - btn.offsetWidth;
+  let maxY = zone.clientHeight - btn.offsetHeight;
+
+  let x;
+  let y;
+
+  do {
+    x = Math.floor(Math.random() * maxX);
+    y = Math.floor(Math.random() * maxY);
+  } while (
+    Math.abs(x - oldX) < btn.offsetWidth &&
+    Math.abs(y - oldY) < btn.offsetHeight
+  );
+
+  btn.style.left = x + "px";
+  btn.style.top = y + "px";
+
+  oldX = x;
+  oldY = y;
+
+  dodges++;
+  counter.textContent = "Dodges: " + dodges;
+
+  const colors = ["blue", "green", "purple", "orange", "red"];
+  let randomColor = Math.floor(Math.random() * colors.length);
+  btn.style.backgroundColor = colors[randomColor];
+});
   console.log("[attack] runaway button installed");
 })();
