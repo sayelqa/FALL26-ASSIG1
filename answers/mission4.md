@@ -5,12 +5,13 @@
 Output of `git log --oneline`:
 
 ```
-ce48b39 (HEAD -> assignment1, origin/assignment1) Complete mission 3
+a90bb00 Complete mission 4
+ce48b39 Complete mission 3
 f8182db Complete mission 2
 41143cd Complete mission 1
 4cb642b Complete mission 0 answers
 0ad5741 Ignore node_modules directory
-d890ff1 (origin/main, origin/HEAD, main) first push with the assignment files
+d890ff1 first push with the assignment files
 294714d Initial commit
 ```
 
@@ -23,8 +24,7 @@ My worst commit message is "Complete mission 0 answers" because it is more gener
 
 PR link, inside your fork:
 
-> https://github.com/...
-
+>  https://github.com/sayelqa/FALL26-ASSIG1/pull/1
 ## Creating value: the risk brief
 
 
